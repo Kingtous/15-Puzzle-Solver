@@ -1,0 +1,3 @@
+{
+    "files": ["main.py","MainWindow.ui","tableGenerator.py","tableSolver.py","ui.py"]
+}
