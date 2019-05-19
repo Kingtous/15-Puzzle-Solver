@@ -16,7 +16,7 @@ def genTable2array():
     '''
     :return: 生成一个puzzle，通过numpy的ndarray返回
     '''
-    return np.random.choice(range(0, 16), 16, False).reshape(4, 4)
+    return np.random.choice(range(0, 16), 16, False).reshape(4, 4).astype(int)
 
 
 def genTable(num):
