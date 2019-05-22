@@ -4,7 +4,7 @@ from tableGenerator import folder
 import copy
 
 # ===配置文件===#
-maxStep = 100000
+maxStep = 90
 goal = "[[ 1.  2.  3.  4.]\n [ 5.  6.  7.  8.]\n [ 9. 10. 11. 12.]\n [13. 14. 15.  0.]]"
 goal2 = "[[ 1  2  3  4]\n [ 5  6  7  8]\n [ 9 10 11 12]\n [13 14 15  0]]"
 state = []
@@ -62,6 +62,8 @@ def calc_h_3(array):
     # posx=int(posx[0])
     # posy=int(posy[0])
 
+    # Debug
+    tmp=0
 
     # step.1 考虑行
     for row in range(array.shape[0]):
@@ -79,7 +81,9 @@ def calc_h_3(array):
                     # 如果两个都在本行，则颠倒+2，注意0
                     if (tmp_row[j]-1)//4==row and (tmp_row[k]-1)//4==row:
                         # print(row,j,"<->",row,k)
+                        tmp=tmp+2
                         h=h+2
+    # print('Linear Confict',str(tmp))
 
     return h
 
@@ -152,8 +156,8 @@ def solve(array, solve_way, step):
     currentStep[np.array2string(array).replace('\n', '')] = 0
 
     while len(way_ing) != 0:
-        if step > maxStep:
-            break
+        # if step > maxStep:
+        #     break
 
         (h, array) = way_ing[0]
         way_ing.remove(way_ing[0])
@@ -187,7 +191,12 @@ def solve(array, solve_way, step):
                     continue
                 tmp_h = calc_h(tmp_array)
 
-                total_h = currentStep[np.array2string(array).replace('\n', '')] + tmp_h
+                cs=currentStep[np.array2string(array).replace('\n', '')]
+
+                if cs>maxStep:
+                    continue
+
+                total_h = cs + tmp_h
 
                 # tmp_array 入 currentStep
                 has_value = currentStep.get(np.array2string(tmp_array).replace('\n', ''), -1)
