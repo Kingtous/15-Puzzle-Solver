@@ -51,9 +51,43 @@ def calc_h_2(array):
                 cnt = cnt + abs(j - j2) + abs(k - k2)
     return cnt
 
+def calc_h_3(array):
+    '''
+    h=曼哈顿距离+Linear Confict
+    '''
+    h=0
+    h=h+calc_h_2(array)
+
+    # posx,posy=np.where(array == 0)
+    # posx=int(posx[0])
+    # posy=int(posy[0])
+
+
+    # step.1 考虑行
+    for row in range(array.shape[0]):
+        tmp_row=array[row]
+        # if row==posx:
+        #     np.delete(tmp_row,posy)
+        #     input()
+        for j in range(tmp_row.shape[0]):
+            for k in range(j+1,tmp_row.shape[0]):
+                if tmp_row[j]==0 or tmp_row[k]==0:
+                        continue
+                # if j==k:
+                #     continue
+                if tmp_row[j]>tmp_row[k]:
+                    # 如果两个都在本行，则颠倒+2，注意0
+                    if (tmp_row[j]-1)//4==row and (tmp_row[k]-1)//4==row:
+                        # print(row,j,"<->",row,k)
+                        h=h+2
+
+    return h
+
+
+
 
 def calc_h(array):
-    return calc_h_2(array)
+    return calc_h_3(array)
 
 
 def isPosLegal(tuple, maxNum):
@@ -74,6 +108,32 @@ currentStep = {}
 state_dict = {}
 way_ing = []
 way_booked = set()
+
+
+def checkIfSolvable(narray):
+    cnt = 0
+    narray_tmp = np.copy(narray).reshape(1, 16)
+
+    posy = int(np.where(narray_tmp == 0)[1][0])
+
+    narray_tmp = np.delete(narray_tmp, posy)
+    length = narray_tmp.shape[0]
+    for i in range(length):
+        for p in range(i + 1, length):
+            if narray_tmp[i] > narray_tmp[p]:
+                cnt = cnt + 1
+    if cnt % 2 == 0:
+        # inversion为偶数，另外还需要空白在从下往上数第奇数行
+        if int(narray.shape[0] - np.where(narray == 0)[0][0]) % 2 != 0:
+            return True
+        else:
+            return False
+    else:
+        # inversion为奇数，另外还需要空白在从下往上数第偶数行
+        if int(narray.shape[0] - np.where(narray == 0)[0][0]) % 2 == 0:
+            return True
+        else:
+            return False
 
 
 def solve(array, solve_way, step):
@@ -122,7 +182,8 @@ def solve(array, solve_way, step):
                 tmp_array = np.copy(array)
                 tmp_array[posx, posy], tmp_array[dir[0], dir[1]] = \
                     tmp_array[dir[0], dir[1]], tmp_array[posx, posy]
-                if way_booked.__contains__(np.array2string(tmp_array)):
+                if way_booked.__contains__(np.array2string(tmp_array)) or \
+                        currentStep.get(np.array2string(tmp_array), -1) != -1:
                     continue
                 tmp_h = calc_h(tmp_array)
 
@@ -132,6 +193,8 @@ def solve(array, solve_way, step):
                 has_value = currentStep.get(np.array2string(tmp_array).replace('\n', ''), -1)
                 if has_value == -1 or has_value > total_h:
                     # 不存在或者有劣质h
+                    if has_value != -1:
+                        print('存在劣质解')
                     currentStep[np.array2string(tmp_array).replace('\n', '')] = currentStep[
                                                                                     np.array2string(array).replace('\n',
                                                                                                                    '')] + 1
@@ -139,6 +202,7 @@ def solve(array, solve_way, step):
                 else:
                     if has_value <= total_h:
                         # 已经存在优质或相等h的点，不添加
+                        print('不添加')
                         continue
                     else:
                         best_array.append((total_h, tmp_array))
@@ -151,6 +215,7 @@ def solve(array, solve_way, step):
         way_ing = way_ing + best_array
         way_ing = sorted(way_ing, key=lambda x: x[0])
         print('当前最小：' + str(way_ing[0][0]))
+        print(way_ing[0][1])
 
         step = step + 1
 
@@ -167,7 +232,7 @@ def solve(array, solve_way, step):
         #     print('==============================回溯')
         #     break
 
-    if h == 0:
+    if calc_h(array) == 0:
         try:
             tmp = state_dict[goal]
         except:
@@ -213,14 +278,30 @@ def cmp_rule(t1, t2):
 
 
 def solveTable(arr):
-    return solve(arr, [], 0)
+    if checkIfSolvable(arr):
+        return solve(arr, [], 0)
+    else:
+        print('无解')
+        return None
 
 
 if __name__ == '__main__':
     # goal=np.array([[1 2 3 4],[5 6 7 8],[9 10 11 12],[13 14 15 0]])
-    # arr=np.array([[1,2,3,4],[5,6,8,7],[9,10,12,11],[0,13,14,15]])
+
+    # arr = np.array([[1,7,2,4], [3, 10, 8, 11], [6, 5, 15, 12], [9, 14, 0, 13]])
+
+    # 50步样例
     arr = np.array([[1, 13, 12, 2], [10, 14, 11, 15], [0, 3, 6, 4], [7, 9, 5, 8]])
-    solve(arr, [], 0)
+    s=solveTable(arr)
+    if s!=None:
+        print(str(len(s)))
+
+
+    # print(arr)
+    # print("h2:",str(calc_h_2(arr)))
+    # print("h3:",str(calc_h_3(arr)))
+
+
     # cnt = 0
     # while os.path.exists(folder + '/' + str(cnt) + '.data'):
     #     array = np.loadtxt(folder + '/' + str(cnt) + '.data')

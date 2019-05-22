@@ -1,15 +1,15 @@
 # This Python file uses the following encoding: utf-8
+import os
 import sys
 
 import numpy as np
-from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from PySide2.QtCore import QTime
-import time
+from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
+
+from saveform import Ui_Form
 from tableGenerator import genTable2array
 from tableSolver import solveTable
 from ui import Ui_MainWindow
-from saveform import Ui_Form
-import os
 
 
 class MainWindow(QMainWindow):
@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
                         narray = np.loadtxt(path).astype(int)
                         self.setArray(narray)
                     else:
-                        self.ui.statusbar.showMessage('载入失败',3000)
+                        self.ui.statusbar.showMessage('载入失败', 3000)
                 except:
                     message = QMessageBox()
                     message.setText(path + ' 不是一个有效的文件')
@@ -105,30 +105,30 @@ class MainWindow(QMainWindow):
             message.setText('没有结果显示，请先执行出解决方案')
             message.show()
         else:
-            filedialog=QFileDialog(self)
-            url=filedialog.getSaveFileUrl(filter='15-Puzzle Data File(*.data)')
+            filedialog = QFileDialog(self)
+            url = filedialog.getSaveFileUrl(filter='15-Puzzle Data File(*.data)')
 
-            path=url[0].path()
+            path = url[0].path()
 
             if os.path.exists(os.path.dirname(path)):
-                file=open(path,'w')
+                file = open(path, 'w')
                 for m in self.result:
-                    file.write(m+'\n')
+                    file.write(m + '\n')
                 file.close()
-                self.ui.statusbar.showMessage('保存成功：'+path, 3000)
+                self.ui.statusbar.showMessage('保存成功：' + path, 3000)
 
             else:
-                message=QMessageBox()
+                message = QMessageBox()
                 message.setText('路径有误，保存失败')
 
-    def processResult(self,result):
+    def processResult(self, result):
         form = Ui_Form()
         win = QMainWindow(self)
         win.ui = form
         form.setupUi(win)
 
         # 设置结果文字
-        win.ui.label.setText('搜索到结果，共 '+str(len(result))+' 步，接下来...')
+        win.ui.label.setText('搜索到结果，共 ' + str(len(result)) + ' 项(包括初始状态)，接下来...')
 
         # 设置槽
         win.ui.saveOnlyButton.clicked.connect(self.saveResult)
@@ -142,24 +142,24 @@ class MainWindow(QMainWindow):
         self.playResult()
 
     def playResult(self):
-        if self.result!=None:
-            cnt=1
+        if self.result != None:
+            cnt = 1
             for step in self.result:
-                file=open('tmp','w')
-                step=step.replace('[','').replace(']','')
+                file = open('tmp', 'w')
+                step = step.replace('[', '').replace(']', '')
                 file.write(step)
                 file.close()
                 self.setArray(np.loadtxt('tmp').astype(int),
-                              preText='('+str(cnt)+'/'+str(len(self.result))+')')
-                cnt=cnt+1
-                t=QTime()
+                              preText='(' + str(cnt) + '/' + str(len(self.result)) + ')')
+                cnt = cnt + 1
+                t = QTime()
                 t.start()
-                while t.elapsed()<100:
+                while t.elapsed() < 100:
                     QApplication.processEvents()
 
-    def setArray(self, narray,preText=''):
-        self.narray=narray
-        self.ui.statusbar.showMessage(preText+'生成：' + np.array2string(narray), 8000)
+    def setArray(self, narray, preText=''):
+        self.narray = narray
+        self.ui.statusbar.showMessage(preText + '生成：' + np.array2string(narray), 8000)
         for j in range(narray.shape[0]):
             for k in range(narray.shape[1]):
                 num = int(narray[j][k])
