@@ -2,6 +2,7 @@ import numpy as np
 import os
 from tableGenerator import folder
 import copy
+import time
 
 # ===配置文件===#
 maxStep = 90
@@ -51,43 +52,42 @@ def calc_h_2(array):
                 cnt = cnt + abs(j - j2) + abs(k - k2)
     return cnt
 
+
 def calc_h_3(array):
     '''
     h=曼哈顿距离+Linear Confict
     '''
-    h=0
-    h=h+calc_h_2(array)
+    h = 0
+    h = h + calc_h_2(array)
 
     # posx,posy=np.where(array == 0)
     # posx=int(posx[0])
     # posy=int(posy[0])
 
     # Debug
-    tmp=0
+    tmp = 0
 
     # step.1 考虑行
     for row in range(array.shape[0]):
-        tmp_row=array[row]
+        tmp_row = array[row]
         # if row==posx:
         #     np.delete(tmp_row,posy)
         #     input()
         for j in range(tmp_row.shape[0]):
-            for k in range(j+1,tmp_row.shape[0]):
-                if tmp_row[j]==0 or tmp_row[k]==0:
-                        continue
+            for k in range(j + 1, tmp_row.shape[0]):
+                if tmp_row[j] == 0 or tmp_row[k] == 0:
+                    continue
                 # if j==k:
                 #     continue
-                if tmp_row[j]>tmp_row[k]:
+                if tmp_row[j] > tmp_row[k]:
                     # 如果两个都在本行，则颠倒+2，注意0
-                    if (tmp_row[j]-1)//4==row and (tmp_row[k]-1)//4==row:
+                    if (tmp_row[j] - 1) // 4 == row and (tmp_row[k] - 1) // 4 == row:
                         # print(row,j,"<->",row,k)
-                        tmp=tmp+2
-                        h=h+2
+                        tmp = tmp + 2
+                        h = h + 2
     # print('Linear Confict',str(tmp))
 
     return h
-
-
 
 
 def calc_h(array):
@@ -112,6 +112,13 @@ currentStep = {}
 state_dict = {}
 way_ing = []
 way_booked = set()
+
+
+def init():
+    currentStep.clear()
+    state_dict.clear()
+    way_ing.clear()
+    way_booked.clear()
 
 
 def checkIfSolvable(narray):
@@ -191,9 +198,9 @@ def solve(array, solve_way, step):
                     continue
                 tmp_h = calc_h(tmp_array)
 
-                cs=currentStep[np.array2string(array).replace('\n', '')]
+                cs = currentStep[np.array2string(array).replace('\n', '')]
 
-                if cs>maxStep:
+                if cs > maxStep:
                     continue
 
                 total_h = cs + tmp_h
@@ -211,7 +218,7 @@ def solve(array, solve_way, step):
                 else:
                     if has_value <= total_h:
                         # 已经存在优质或相等h的点，不添加
-                        print('不添加')
+                        # print('不添加')
                         continue
                     else:
                         best_array.append((total_h, tmp_array))
@@ -223,8 +230,8 @@ def solve(array, solve_way, step):
         # 排序
         way_ing = way_ing + best_array
         way_ing = sorted(way_ing, key=lambda x: x[0])
-        print('当前最小：' + str(way_ing[0][0]))
-        print(way_ing[0][1])
+        # print('当前最小：' + str(way_ing[0][0]))
+        # print(way_ing[0][1])
 
         step = step + 1
 
@@ -294,6 +301,71 @@ def solveTable(arr):
         return None
 
 
+# ================IDA* Algorithm==================
+
+IDA_MaxStep = 80
+stepFound = -1
+IDA_StateList = []
+enuStep = None
+
+
+def dfs_IDA(arr, step, moveList, preDirInt):
+    global enuStep
+    global stepFound
+    global IDA_StateList
+    if step > enuStep:
+        return False
+
+    if step == enuStep:
+        if calc_h(arr) == 0:
+            stepFound = step
+            IDA_StateList = moveList
+            return True
+
+    # 开始查找子结点
+    posx, posy = np.where(arr == 0)
+    posx = int(posx[0])
+    posy = int(posy[0])
+
+    # 四个方向
+    dirL = []
+    # 顺序不能更改，防止回退
+    dirL.append((posx - 1, posy))  # left
+    dirL.append((posx, posy + 1))  # up
+    dirL.append((posx, posy - 1))  # down
+    dirL.append((posx + 1, posy))  # right
+
+    for dir in dirL:
+        if isPosLegal(dir, arr.shape[0]):
+            # 不回退
+            if preDirInt is not None and dirL.index(dir) + preDirInt == 3:
+                continue
+            arr[posx, posy], arr[dir[0], dir[1]] = \
+                arr[dir[0], dir[1]], arr[posx, posy]
+            if step + calc_h(arr) <= enuStep:
+                if dfs_IDA(arr, step + 1, moveList + [np.copy(arr)], dirL.index(dir)):
+                    return True
+            arr[dir[0], dir[1]], arr[posx, posy] = \
+                arr[posx, posy], arr[dir[0], dir[1]]
+    else:
+        return False
+
+def IDA(arr):
+    global enuStep
+    if checkIfSolvable(arr):
+        enuStep = calc_h(arr)
+        while enuStep <= IDA_MaxStep and not dfs_IDA(arr, 0, [], None):
+            # 有解
+            enuStep = enuStep + 1
+            print('在最大深度为', enuStep, "中没找到解")
+        return IDA_StateList
+    else:
+        print('无解')
+        return None
+    pass
+
+
+# ================================================
 if __name__ == '__main__':
     # goal=np.array([[1 2 3 4],[5 6 7 8],[9 10 11 12],[13 14 15 0]])
 
@@ -301,18 +373,35 @@ if __name__ == '__main__':
 
     # 50步样例
     arr = np.array([[1, 13, 12, 2], [10, 14, 11, 15], [0, 3, 6, 4], [7, 9, 5, 8]])
-    s=solveTable(arr)
-    if s!=None:
-        print(str(len(s)))
+    t1 = time.time()
+    # 14步样例
+    # arr = np.array([[5, 1, 2, 4], [9, 6, 3, 8], [13, 15, 10, 11], [14, 0, 7, 12]])
 
+    # s=solveTable(arr)
+    # while s==None:
+    #     init()
+    #     print ('step=',maxStep)
+    #     s=solveTable(arr)
+    # print(str(len(s)))
+
+    st = IDA(arr)
+
+    if st != None:
+        for t in st:
+            print(t)
+
+    t2 = time.time()
+    print(t2 - t1, "s")
 
     # print(arr)
     # print("h2:",str(calc_h_2(arr)))
     # print("h3:",str(calc_h_3(arr)))
-
 
     # cnt = 0
     # while os.path.exists(folder + '/' + str(cnt) + '.data'):
     #     array = np.loadtxt(folder + '/' + str(cnt) + '.data')
     #     solve(array.reshape(4, 4))
     #     cnt = cnt + 1
+
+    # 1 13 12 2 10 14 11 15 0 3 6 4 7 9 5 8
+    # 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0
