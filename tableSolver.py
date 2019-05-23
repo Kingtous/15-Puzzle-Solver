@@ -3,6 +3,7 @@ import os
 from tableGenerator import folder
 import copy
 import time
+from numba import jit
 
 # ===配置文件===#
 maxStep = 90
@@ -12,7 +13,7 @@ state = []
 
 
 # ============#
-
+@jit(nopython=True)
 def calc_h_1(array):
     '''
     h=相应错位的格子
@@ -28,7 +29,7 @@ def calc_h_1(array):
             cnt = cnt + 1
     return cnt
 
-
+@jit(nopython=True)
 def calc_h_2(array):
     '''
     h=曼哈顿距离
@@ -52,7 +53,7 @@ def calc_h_2(array):
                 cnt = cnt + abs(j - j2) + abs(k - k2)
     return cnt
 
-
+@jit(nopython=True)
 def calc_h_3(array):
     '''
     h=曼哈顿距离+Linear Confict
@@ -89,11 +90,11 @@ def calc_h_3(array):
 
     return h
 
-
+@jit(nopython=True)
 def calc_h(array):
     return calc_h_3(array)
 
-
+@jit(nopython=True)
 def isPosLegal(tuple, maxNum):
     '''
     :param tuple: (x坐标,y坐标)
@@ -120,7 +121,7 @@ def init():
     way_ing.clear()
     way_booked.clear()
 
-
+@jit
 def checkIfSolvable(narray):
     cnt = 0
     narray_tmp = np.copy(narray).reshape(1, 16)
@@ -305,14 +306,18 @@ def solveTable(arr):
 
 IDA_MaxStep = 80
 stepFound = -1
-IDA_StateList = []
+IDA_StateRecord=[]
+IDA_StateList=[]
 enuStep = None
+num=0
 
 
 def dfs_IDA(arr, step, moveList, preDirInt):
     global enuStep
     global stepFound
     global IDA_StateList
+    global IDA_StateRecord
+    global num
     if step > enuStep:
         return False
 
@@ -342,9 +347,16 @@ def dfs_IDA(arr, step, moveList, preDirInt):
                 continue
             arr[posx, posy], arr[dir[0], dir[1]] = \
                 arr[dir[0], dir[1]], arr[posx, posy]
+            if np.array2string(arr) in IDA_StateRecord:
+                continue
+
             if step + calc_h(arr) <= enuStep:
+                num=num+1
+                IDA_StateRecord.append(np.array2string(arr))
                 if dfs_IDA(arr, step + 1, moveList + [np.copy(arr)], dirL.index(dir)):
                     return True
+                IDA_StateRecord.remove(np.array2string(arr))
+
             arr[dir[0], dir[1]], arr[posx, posy] = \
                 arr[posx, posy], arr[dir[0], dir[1]]
     else:
@@ -352,8 +364,10 @@ def dfs_IDA(arr, step, moveList, preDirInt):
 
 def IDA(arr):
     global enuStep
+    global IDA_StateRecord
     if checkIfSolvable(arr):
         enuStep = calc_h(arr)
+        IDA_StateRecord.append(np.array2string(arr))
         while enuStep <= IDA_MaxStep and not dfs_IDA(arr, 0, [], None):
             # 有解
             enuStep = enuStep + 1
@@ -392,7 +406,8 @@ if __name__ == '__main__':
 
     t2 = time.time()
     print(t2 - t1, "s")
-
+    print(num)
+    
     # print(arr)
     # print("h2:",str(calc_h_2(arr)))
     # print("h3:",str(calc_h_3(arr)))
