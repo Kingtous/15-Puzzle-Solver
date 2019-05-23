@@ -2,6 +2,7 @@ import numpy as np
 import os
 from tableGenerator import folder
 import copy
+from numba import jit
 import time
 
 # ===配置文件===#
@@ -29,6 +30,7 @@ def calc_h_1(array):
     return cnt
 
 
+@jit
 def calc_h_2(array):
     '''
     h=曼哈顿距离
@@ -53,6 +55,7 @@ def calc_h_2(array):
     return cnt
 
 
+@jit
 def calc_h_3(array):
     '''
     h=曼哈顿距离+Linear Confict
@@ -90,10 +93,12 @@ def calc_h_3(array):
     return h
 
 
+@jit
 def calc_h(array):
     return calc_h_3(array)
 
 
+@jit
 def isPosLegal(tuple, maxNum):
     '''
     :param tuple: (x坐标,y坐标)
@@ -121,6 +126,7 @@ def init():
     way_booked.clear()
 
 
+@jit
 def checkIfSolvable(narray):
     cnt = 0
     narray_tmp = np.copy(narray).reshape(1, 16)
@@ -302,17 +308,13 @@ def solveTable(arr):
 
 
 # ================IDA* Algorithm==================
-
 IDA_MaxStep = 80
 stepFound = -1
 IDA_StateList = []
-enuStep = None
 
 
-def dfs_IDA(arr, step, moveList, preDirInt):
-    global enuStep
-    global stepFound
-    global IDA_StateList
+@jit
+def dfs_IDA(arr, step, moveList, preDirInt, enuStep, stepFound, IDA_StateList):
     if step > enuStep:
         return False
 
@@ -343,18 +345,20 @@ def dfs_IDA(arr, step, moveList, preDirInt):
             arr[posx, posy], arr[dir[0], dir[1]] = \
                 arr[dir[0], dir[1]], arr[posx, posy]
             if step + calc_h(arr) <= enuStep:
-                if dfs_IDA(arr, step + 1, moveList + [np.copy(arr)], dirL.index(dir)):
+                if dfs_IDA(arr, step + 1, moveList + [np.copy(arr)], dirL.index(dir), enuStep, stepFound,
+                           IDA_StateList):
                     return True
             arr[dir[0], dir[1]], arr[posx, posy] = \
                 arr[posx, posy], arr[dir[0], dir[1]]
     else:
         return False
 
-def IDA(arr):
-    global enuStep
+
+@jit
+def IDA(arr, stepFound, IDA_StateList):
     if checkIfSolvable(arr):
         enuStep = calc_h(arr)
-        while enuStep <= IDA_MaxStep and not dfs_IDA(arr, 0, [], None):
+        while enuStep <= IDA_MaxStep and not dfs_IDA(arr, 0, [], None, enuStep, stepFound, IDA_StateList):
             # 有解
             enuStep = enuStep + 1
             print('在最大深度为', enuStep, "中没找到解")
@@ -374,6 +378,7 @@ if __name__ == '__main__':
     # 50步样例
     arr = np.array([[1, 13, 12, 2], [10, 14, 11, 15], [0, 3, 6, 4], [7, 9, 5, 8]])
     t1 = time.time()
+
     # 14步样例
     # arr = np.array([[5, 1, 2, 4], [9, 6, 3, 8], [13, 15, 10, 11], [14, 0, 7, 12]])
 
@@ -383,8 +388,7 @@ if __name__ == '__main__':
     #     print ('step=',maxStep)
     #     s=solveTable(arr)
     # print(str(len(s)))
-
-    st = IDA(arr)
+    st = IDA(arr, stepFound, IDA_StateList)
 
     if st != None:
         for t in st:
