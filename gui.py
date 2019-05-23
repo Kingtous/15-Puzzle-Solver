@@ -8,7 +8,7 @@ from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBo
 
 from saveform import Ui_Form
 from tableGenerator import genTable2array
-from tableSolver import solveTable
+from tableSolver import solveTable,calc_h
 from ui import Ui_MainWindow
 
 
@@ -46,6 +46,9 @@ class MainWindow(QMainWindow):
             narray = genTable2array()
             self.narray = narray
             self.setArray(narray)
+            self.ui.statusbar.showMessage('预计Cost为：'+str(calc_h(self.narray)),5000)
+
+
         elif sender == self.ui.action_solve:
             # 判断是否有解
             cnt = 0
@@ -87,6 +90,7 @@ class MainWindow(QMainWindow):
                     if os.path.exists(os.path.dirname(path)):
                         narray = np.loadtxt(path).astype(int)
                         self.setArray(narray)
+                        self.ui.statusbar.showMessage('预计Cost为：' + str(calc_h(self.narray)), 5000)
                     else:
                         self.ui.statusbar.showMessage('载入失败', 3000)
                 except:
@@ -178,7 +182,6 @@ class MainWindow(QMainWindow):
 
     def press(self):
         # TODO 点按互换位置
-
         pass
 
 

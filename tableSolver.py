@@ -13,7 +13,7 @@ state = []
 
 
 # ============#
-
+@jit
 def calc_h_1(array):
     '''
     h=相应错位的格子
@@ -68,7 +68,6 @@ def calc_h_3(array):
     # posy=int(posy[0])
 
     # Debug
-    tmp = 0
 
     # step.1 考虑行
     for row in range(array.shape[0]):
@@ -86,8 +85,22 @@ def calc_h_3(array):
                     # 如果两个都在本行，则颠倒+2，注意0
                     if (tmp_row[j] - 1) // 4 == row and (tmp_row[k] - 1) // 4 == row:
                         # print(row,j,"<->",row,k)
-                        tmp = tmp + 2
                         h = h + 2
+    # step.2 考虑列
+    for col in range(array.shape[1]):
+        exists=[col,col+4,col+8,(col+12)%16]
+
+        tmp_col=array[:,col]
+
+        for j in range(tmp_col.size):
+            for k in range(j+1,tmp_col.size):
+                if tmp_col[j]==0 or tmp_col[k]==0:
+                    continue
+                if tmp_col[j] in exists and tmp_col[k] in exists:
+                    if j>k and np.where(tmp_col==j)[0][0]<np.where(tmp_col==k)[0][0]:
+                        h = h + 2
+
+
     # print('Linear Confict',str(tmp))
 
     return h
@@ -301,7 +314,7 @@ def cmp_rule(t1, t2):
 
 def solveTable(arr):
     if checkIfSolvable(arr):
-        return solve(arr, [], 0)
+        return IDA(arr)  # solve(arr, [], 0)
     else:
         print('无解')
         return None
@@ -311,10 +324,12 @@ def solveTable(arr):
 IDA_MaxStep = 80
 stepFound = -1
 IDA_StateList = []
+enuStep = None
+num = 0
 
 
-@jit
-def dfs_IDA(arr, step, moveList, preDirInt, enuStep, stepFound, IDA_StateList):
+def dfs_IDA(arr, step, moveList, preDirInt):
+    global enuStep, stepFound, IDA_StateList, num
     if step > enuStep:
         return False
 
@@ -345,8 +360,8 @@ def dfs_IDA(arr, step, moveList, preDirInt, enuStep, stepFound, IDA_StateList):
             arr[posx, posy], arr[dir[0], dir[1]] = \
                 arr[dir[0], dir[1]], arr[posx, posy]
             if step + calc_h(arr) <= enuStep:
-                if dfs_IDA(arr, step + 1, moveList + [np.copy(arr)], dirL.index(dir), enuStep, stepFound,
-                           IDA_StateList):
+                num = num + 1
+                if dfs_IDA(arr, step + 1, moveList + [np.copy(arr)], dirL.index(dir)):
                     return True
             arr[dir[0], dir[1]], arr[posx, posy] = \
                 arr[posx, posy], arr[dir[0], dir[1]]
@@ -354,11 +369,11 @@ def dfs_IDA(arr, step, moveList, preDirInt, enuStep, stepFound, IDA_StateList):
         return False
 
 
-@jit
-def IDA(arr, stepFound, IDA_StateList):
+def IDA(arr):
+    global stepFound, IDA_StateList, enuStep
     if checkIfSolvable(arr):
         enuStep = calc_h(arr)
-        while enuStep <= IDA_MaxStep and not dfs_IDA(arr, 0, [], None, enuStep, stepFound, IDA_StateList):
+        while enuStep <= IDA_MaxStep and not dfs_IDA(arr, 0, [], None):
             # 有解
             enuStep = enuStep + 1
             print('在最大深度为', enuStep, "中没找到解")
@@ -376,7 +391,9 @@ if __name__ == '__main__':
     # arr = np.array([[1,7,2,4], [3, 10, 8, 11], [6, 5, 15, 12], [9, 14, 0, 13]])
 
     # 50步样例
-    arr = np.array([[1, 13, 12, 2], [10, 14, 11, 15], [0, 3, 6, 4], [7, 9, 5, 8]])
+    # arr = np.array([[1, 13, 12, 2], [10, 14, 11, 15], [0, 3, 6, 4], [7, 9, 5, 8]])
+
+    arr = np.array([[8, 11, 2, 12], [0, 7, 3, 10], [6, 9, 15, 13], [4, 14, 5, 1]])
     t1 = time.time()
 
     # 14步样例
@@ -388,7 +405,9 @@ if __name__ == '__main__':
     #     print ('step=',maxStep)
     #     s=solveTable(arr)
     # print(str(len(s)))
-    st = IDA(arr, stepFound, IDA_StateList)
+    print(calc_h(arr))
+    
+    st = IDA(arr)
 
     if st != None:
         for t in st:
@@ -396,6 +415,7 @@ if __name__ == '__main__':
 
     t2 = time.time()
     print(t2 - t1, "s")
+    print(num)
 
     # print(arr)
     # print("h2:",str(calc_h_2(arr)))
