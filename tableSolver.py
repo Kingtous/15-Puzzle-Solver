@@ -2,6 +2,7 @@ import numpy as np
 import os
 from tableGenerator import folder
 import copy
+from numba import jit
 import time
 from numba import jit
 
@@ -29,6 +30,7 @@ def calc_h_1(array):
             cnt = cnt + 1
     return cnt
 
+
 @jit(nopython=True)
 def calc_h_2(array):
     '''
@@ -52,6 +54,7 @@ def calc_h_2(array):
                 # print(abs(j-j2)+abs(k-k2))
                 cnt = cnt + abs(j - j2) + abs(k - k2)
     return cnt
+
 
 @jit(nopython=True)
 def calc_h_3(array):
@@ -90,6 +93,7 @@ def calc_h_3(array):
 
     return h
 
+
 @jit(nopython=True)
 def calc_h(array):
     return calc_h_3(array)
@@ -121,7 +125,7 @@ def init():
     way_ing.clear()
     way_booked.clear()
 
-@jit
+@jit(nopython=True)
 def checkIfSolvable(narray):
     cnt = 0
     narray_tmp = np.copy(narray).reshape(1, 16)
@@ -303,7 +307,6 @@ def solveTable(arr):
 
 
 # ================IDA* Algorithm==================
-
 IDA_MaxStep = 80
 stepFound = -1
 IDA_StateRecord=[]
@@ -349,7 +352,6 @@ def dfs_IDA(arr, step, moveList, preDirInt):
                 arr[dir[0], dir[1]], arr[posx, posy]
             if np.array2string(arr) in IDA_StateRecord:
                 continue
-
             if step + calc_h(arr) <= enuStep:
                 num=num+1
                 IDA_StateRecord.append(np.array2string(arr))
@@ -388,6 +390,7 @@ if __name__ == '__main__':
     # 50步样例
     arr = np.array([[1, 13, 12, 2], [10, 14, 11, 15], [0, 3, 6, 4], [7, 9, 5, 8]])
     t1 = time.time()
+
     # 14步样例
     # arr = np.array([[5, 1, 2, 4], [9, 6, 3, 8], [13, 15, 10, 11], [14, 0, 7, 12]])
 
@@ -397,7 +400,6 @@ if __name__ == '__main__':
     #     print ('step=',maxStep)
     #     s=solveTable(arr)
     # print(str(len(s)))
-
     st = IDA(arr)
 
     if st != None:
