@@ -1,19 +1,56 @@
-import numpy as np
-import os
-from tableGenerator import folder
-import copy
-from numba import jit
 import time
 from WDistanceModel import *
 
+'''
+Author: Kingtous
+Description: 解决器
+Date: 2019-06-03
+'''
+
 # ===配置文件===#
-maxStep = 90
+maxStep = 80
+
+# =====贪婪搜索开关(只适用于A*算法)=====#
+greedyOptions = True
+
+@jit
+def calc_h(array):
+    '''
+    :param array: numpy.ndarray
+    :return: 一共有四种heuristic函数可供返回
+    1. calc_h_1(array) 格子错位数
+    2. calc_h_2(array) Manhattan距离
+    3. calc_h_3(array) Manhattan距离+Linear Conflict
+    3. calc_h_4(array) Walking Distance
+    '''
+    return calc_h_4(array)
+
+
+def solveWay(arr):
+    """
+    :param arr: numpy.ndarray
+    :return: 通过方法解决出的问题
+    解决方式：
+    1. Astar(arr,0) -> A*算法
+    2. IDA(arr) -> IDA*算法
+    """
+    return Astar(arr, 0)
+
+
+# ============以下内容不做更改============
 goal = "[[ 1.  2.  3.  4.]\n [ 5.  6.  7.  8.]\n [ 9. 10. 11. 12.]\n [13. 14. 15.  0.]]"
 goal2 = "[[ 1  2  3  4]\n [ 5  6  7  8]\n [ 9 10 11 12]\n [13 14 15  0]]"
 state = []
 
 
-# ============#
+def solveTable(arr):
+    if checkIfSolvable(arr):
+        return solveWay(arr)  # solve(arr, [], 0)
+    else:
+        print('无解')
+        return None
+
+
 @jit
 def calc_h_1(array):
     '''
@@ -64,13 +101,11 @@ def calc_h_3(array):
     '''
     h = 0
     h = h + calc_h_2(array)
-
     # posx,posy=np.where(array == 0)
     # posx=int(posx[0])
     # posy=int(posy[0])
     # Debug
     tmp = 0
-
     # step.1 考虑行
     for row in range(4):  # array.shape[0]):
         tmp_row = array[row]
@@ -94,29 +129,29 @@ def calc_h_3(array):
     return h
 
 
+# =======================
 d1 = WalkingDistance()
 d1.initCal()
-d2 = copy.deepcopy(d1)
+d2 = WalkingDistance()
+d2.initCal()
 
 
-def calc_h_4(array):
-    d1.set_num(array, 1)
-    d2.set_num(array, 2)
-    return d1.get_wdistance() + d2.get_wdistance()
-
+# =======================
 
 @jit
-def calc_h(array):
-    return calc_h_3(array)
+def calc_h_4(array):
+    d1.setArray(array, 1)
+    d2.setArray(array, 2)
+    return d1.getWDistance() + d2.getWDistance()
 
 
 @jit
 def isPosLegal(tuple, maxNum):
-    '''
+    """
     :param tuple: (x坐标,y坐标)
     :param maxNum: 行列的最大值
     :return: True表示位置合法，False为非法
-    '''
+    """
     x = tuple[0]
     y = tuple[1]
     if x < 0 or y < 0 or x >= maxNum or y >= maxNum:
@@ -165,7 +200,7 @@ def checkIfSolvable(narray):
             return False
 
 
-def solve(array, solve_way, step):
+def Astar(array, step):
     global way_ing
     global way_solution
     global maxStep
@@ -218,17 +253,20 @@ def solve(array, solve_way, step):
 
                 cs = currentStep[np.array2string(array).replace('\n', '')]
 
-                if cs > maxStep:
-                    continue
-
-                total_h = cs + tmp_h
+                if not greedyOptions:
+                    if cs > maxStep:
+                        continue
+                    total_h = cs + tmp_h
+                else:
+                    total_h = tmp_h
 
                 # tmp_array 入 currentStep
                 has_value = currentStep.get(np.array2string(tmp_array).replace('\n', ''), -1)
                 if has_value == -1 or has_value > total_h:
                     # 不存在或者有劣质h
                     if has_value != -1:
-                        print('存在劣质解')
+                        # print('存在劣质解')
+                        pass
                     currentStep[np.array2string(tmp_array).replace('\n', '')] = currentStep[
                                                                                     np.array2string(array).replace('\n',
                                                                                                                    '')] + 1
@@ -311,14 +349,6 @@ def cmp_rule(t1, t2):
         return 0
 
 
-def solveTable(arr):
-    if checkIfSolvable(arr):
-        return IDA(arr)  # solve(arr, [], 0)
-    else:
-        print('无解')
-        return None
-
-
 # ================IDA* Algorithm==================
 IDA_MaxStep = 80
 stepFound = -1
@@ -360,7 +390,7 @@ def dfs_IDA(arr, step, moveList, preDirInt):
                 arr[dirL[i][0], dirL[i][1]], arr[posx, posy]
             if step + calc_h(arr) <= enuStep:
                 num = num + 1
-                if dfs_IDA(arr, step + 1, moveList + [copy.deepcopy(arr)], i):
+                if dfs_IDA(arr, step + 1, moveList + [copy.copy(arr)], i):
                     return True
             arr[dirL[i][0], dirL[i][1]], arr[posx, posy] = \
                 arr[posx, posy], arr[dirL[i][0], dirL[i][1]]
@@ -390,13 +420,13 @@ if __name__ == '__main__':
     # arr = np.array([[1,7,2,4], [3, 10, 8, 11], [6, 5, 15, 12], [9, 14, 0, 13]])
 
     # 50步样例
-    arr = np.array([[1, 13, 12, 2], [10, 14, 11, 15], [0, 3, 6, 4], [7, 9, 5, 8]])
+    # arr = np.array([[1, 13, 12, 2], [10, 14, 11, 15], [0, 3, 6, 4], [7, 9, 5, 8]])
 
     # arr = np.array([[8, 11, 2, 12], [0, 7, 3, 10], [6, 9, 15, 13], [4, 14, 5, 1]])
     t1 = time.time()
 
     # 14步样例
-    # arr = np.array([[5, 1, 2, 4], [9, 6, 3, 8], [13, 15, 10, 11], [14, 0, 7, 12]])
+    arr = np.array([[5, 1, 2, 4], [9, 6, 3, 8], [13, 15, 10, 11], [14, 0, 7, 12]])
 
     # s=solveTable(arr)
     # while s==None:

@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'mainwindow.ui',
 # licensing of 'mainwindow.ui' applies.
 #
-# Created: Sun May 19 09:59:47 2019
+# Created: Mon Jun  3 20:53:02 2019
 #      by: pyside2-uic  running on PySide2 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -377,16 +377,23 @@ class Ui_MainWindow(object):
         font.setPointSize(13)
         self.action_load.setFont(font)
         self.action_load.setObjectName("action_load")
-        self.action_store = QtWidgets.QAction(MainWindow)
+        self.action_storeLayout = QtWidgets.QAction(MainWindow)
         font = QtGui.QFont()
         font.setFamily("Microsoft YaHei UI")
         font.setPointSize(13)
-        self.action_store.setFont(font)
-        self.action_store.setObjectName("action_store")
+        self.action_storeLayout.setFont(font)
+        self.action_storeLayout.setObjectName("action_storeLayout")
+        self.action_storeResult = QtWidgets.QAction(MainWindow)
+        font = QtGui.QFont()
+        font.setFamily("Microsoft YaHei UI")
+        font.setPointSize(13)
+        self.action_storeResult.setFont(font)
+        self.action_storeResult.setObjectName("action_storeResult")
         self.toolBar.addAction(self.action_gen)
         self.toolBar.addAction(self.action_solve)
         self.toolBar.addAction(self.action_load)
-        self.toolBar.addAction(self.action_store)
+        self.toolBar.addAction(self.action_storeLayout)
+        self.toolBar.addAction(self.action_storeResult)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -416,6 +423,10 @@ class Ui_MainWindow(object):
         self.action_solve.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+2", None, -1))
         self.action_load.setText(QtWidgets.QApplication.translate("MainWindow", "载入", None, -1))
         self.action_load.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+3", None, -1))
-        self.action_store.setText(QtWidgets.QApplication.translate("MainWindow", "保存", None, -1))
-        self.action_store.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+4", None, -1))
+        self.action_storeLayout.setText(QtWidgets.QApplication.translate("MainWindow", "保存当前布局", None, -1))
+        self.action_storeLayout.setToolTip(QtWidgets.QApplication.translate("MainWindow", "保存当前布局", None, -1))
+        self.action_storeLayout.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+4", None, -1))
+        self.action_storeResult.setText(QtWidgets.QApplication.translate("MainWindow", "保存结果", None, -1))
+        self.action_storeResult.setToolTip(QtWidgets.QApplication.translate("MainWindow", "保存结果", None, -1))
+        self.action_storeResult.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+5", None, -1))
 

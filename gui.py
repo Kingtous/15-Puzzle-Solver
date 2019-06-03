@@ -1,15 +1,20 @@
-# This Python file uses the following encoding: utf-8
 import os
 import sys
 
 import numpy as np
 from PySide2.QtCore import QTime
-from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
+from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QMenu
 
 from saveform import Ui_Form
 from tableGenerator import genTable2array
-from tableSolver import solveTable,calc_h
+from tableSolver import solveTable, calc_h, checkIfSolvable
 from ui import Ui_MainWindow
+
+'''
+Author: Kingtous
+Description: GUI界面
+Date: 2019-06-03
+'''
 
 
 class MainWindow(QMainWindow):
@@ -22,23 +27,20 @@ class MainWindow(QMainWindow):
         self.ui.action_gen.triggered.connect(self.action_triggered)
         self.ui.action_solve.triggered.connect(self.action_triggered)
         self.ui.action_load.triggered.connect(self.action_triggered)
-        self.ui.action_store.triggered.connect(self.action_triggered)
+        self.ui.action_storeLayout.triggered.connect(self.action_triggered)
+        self.ui.action_storeResult.triggered.connect(self.action_triggered)
         self.narray = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
         self.result = None
 
-    def changeStatus(self, arr):
-        pass
-
-    def initMenu(self):
-        pass
-
-    def initBox(self):
-        pass
-
-    def fail(self):
+    @staticmethod
+    def fail():
         message = QMessageBox()
         message.setText('无解')
         message.exec_()
+
+    def startSolve(self):
+        self.result = solveTable(self.narray)
+        self.processResult(self.result)
 
     def action_triggered(self):
         sender = self.sender()
@@ -46,8 +48,10 @@ class MainWindow(QMainWindow):
             narray = genTable2array()
             self.narray = narray
             self.setArray(narray)
-            self.ui.statusbar.showMessage('预计Cost为：'+str(calc_h(self.narray)),5000)
-
+            v = '（无解）'
+            if checkIfSolvable(narray):
+                v = '（有解）'
+            self.ui.statusbar.showMessage('预计Cost为：' + str(calc_h(self.narray)) + v, 5000)
 
         elif sender == self.ui.action_solve:
             # 判断是否有解
@@ -65,15 +69,13 @@ class MainWindow(QMainWindow):
             if cnt % 2 == 0:
                 # inversion为偶数，另外还需要空白在从下往上数第奇数行
                 if int(self.narray.shape[0] - np.where(self.narray == 0)[0][0]) % 2 != 0:
-                    self.result = solveTable(self.narray)
-                    self.processResult(self.result)
+                    self.startSolve()
                 else:
                     self.fail()
             else:
                 # inversion为奇数，另外还需要空白在从下往上数第偶数行
                 if int(self.narray.shape[0] - np.where(self.narray == 0)[0][0]) % 2 == 0:
-                    self.result = solveTable(self.narray)
-                    self.processResult(self.result)
+                    self.startSolve()
                 else:
                     self.fail()
 
@@ -99,9 +101,25 @@ class MainWindow(QMainWindow):
                     message.exec_()
                     self.narray = narray_backup
 
-        elif sender == self.ui.action_store:
+        elif sender == self.ui.action_storeLayout:
+            self.saveLayout()
+            pass
+        elif sender == self.ui.action_storeResult:
             # 保存当前状态
             self.saveResult()
+
+    def saveLayout(self):
+        filedialog = QFileDialog(self)
+        url = filedialog.getSaveFileUrl(filter='15-Puzzle Data File(*.data)')
+        path = url[0].path()
+        if os.path.exists(os.path.dirname(path)):
+            file = open(path, 'w')
+            file.write(str(self.narray).replace('[', '').replace(']', ''))
+            file.close()
+            self.ui.statusbar.showMessage('保存成功：' + path, 3000)
+        else:
+            message = QMessageBox()
+            message.setText('路径有误，保存失败')
 
     def saveResult(self):
         if self.result == None:
@@ -117,7 +135,10 @@ class MainWindow(QMainWindow):
             if os.path.exists(os.path.dirname(path)):
                 file = open(path, 'w')
                 for m in self.result:
-                    file.write(m + '\n')
+                    if type(m) == np.ndarray:
+                        file.write(str(m) + '\n')
+                    else:
+                        file.write(m + '\n')
                 file.close()
                 self.ui.statusbar.showMessage('保存成功：' + path, 3000)
 
@@ -149,16 +170,20 @@ class MainWindow(QMainWindow):
         if self.result != None:
             cnt = 1
             for step in self.result:
-                file = open('tmp', 'w')
-                step = step.replace('[', '').replace(']', '')
-                file.write(step)
-                file.close()
-                self.setArray(np.loadtxt('tmp').astype(int),
-                              preText='(' + str(cnt) + '/' + str(len(self.result)) + ')')
+                if type(step) == np.ndarray:
+                    self.setArray(step)
+                else:
+                    file = open('tmp', 'w')
+                    step = step.replace('[', '').replace(']', '')
+                    file.write(step)
+                    file.close()
+                    self.setArray(np.loadtxt('tmp').astype(int),
+                                  preText='(' + str(cnt) + '/' + str(len(self.result)) + ')')
                 cnt = cnt + 1
                 t = QTime()
                 t.start()
                 while t.elapsed() < 100:
+                    # 0.1s/步切换
                     QApplication.processEvents()
 
     def setArray(self, narray, preText=''):
@@ -176,18 +201,9 @@ class MainWindow(QMainWindow):
                     eval('self.ui.pushButton_' + str(j * 4 + k + 1) +
                          ".setStyleSheet('background-color : rgb(46,139,87)')")
 
-    def exchange(self, btn_1, btn_2):
-        # TODO 拖拽传值，看看行不行
-        pass
-
-    def press(self):
-        # TODO 点按互换位置
-        pass
-
 
 if __name__ == "__main__":
     app = QApplication([])
     window = MainWindow()
     window.show()
-
     sys.exit(app.exec_())

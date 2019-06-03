@@ -690,7 +690,8 @@
    <addaction name="action_gen"/>
    <addaction name="action_solve"/>
    <addaction name="action_load"/>
-   <addaction name="action_store"/>
+   <addaction name="action_storeLayout"/>
+   <addaction name="action_storeResult"/>
   </widget>
   <action name="action_gen">
    <property name="text">
@@ -737,9 +738,12 @@
     <string>Ctrl+3</string>
    </property>
   </action>
-  <action name="action_store">
+  <action name="action_storeLayout">
    <property name="text">
-    <string>保存</string>
+    <string>保存当前布局</string>
+   </property>
+   <property name="toolTip">
+    <string>保存当前布局</string>
    </property>
    <property name="font">
     <font>
@@ -749,6 +753,23 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="action_storeResult">
+   <property name="text">
+    <string>保存结果</string>
+   </property>
+   <property name="toolTip">
+    <string>保存结果</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei UI</family>
+     <pointsize>13</pointsize>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
    </property>
   </action>
  </widget>
