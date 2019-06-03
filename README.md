@@ -75,3 +75,7 @@ def solveWay(arr):
 - Start Calculator
   - ```python3.7 gui.py ``` for GUI Mode
   - ```python3.7 tableSolver.py``` for CLI Mode 
+
+![image-20190603232005034](/../15-Puzzle-Solver/assets/image-20190603232005034-9575205.png)
+
+![show](/../15-Puzzle-Solver/assets/show.gif)
