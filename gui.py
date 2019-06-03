@@ -22,8 +22,6 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.initMenu()
-        self.initBox()
         self.ui.action_gen.triggered.connect(self.action_triggered)
         self.ui.action_solve.triggered.connect(self.action_triggered)
         self.ui.action_load.triggered.connect(self.action_triggered)
@@ -32,8 +30,7 @@ class MainWindow(QMainWindow):
         self.narray = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
         self.result = None
 
-    @staticmethod
-    def fail():
+    def fail(self):
         message = QMessageBox()
         message.setText('无解')
         message.exec_()
