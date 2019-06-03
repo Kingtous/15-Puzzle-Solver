@@ -1,7 +1,3 @@
----
-typora-root-url: ../15-puzzle
----
-
 # 15 Puzzle Solver
 
 > Created By Kingtous From CS1702,NEUQ
@@ -76,6 +72,6 @@ def solveWay(arr):
   - ```python3.7 gui.py ``` for GUI Mode
   - ```python3.7 tableSolver.py``` for CLI Mode 
 
-![image-20190603232005034](/../15-Puzzle-Solver/assets/image-20190603232005034-9575205.png)
+![image-20190603232005034](assets/image-20190603232005034-9575205.png)
 
-![show](/../15-Puzzle-Solver/assets/show.gif)
+![show](assets/show.gif)
