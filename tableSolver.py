@@ -2,9 +2,9 @@ import numpy as np
 import os
 from tableGenerator import folder
 import copy
-from scipy.spatial import distance
 from numba import jit
 import time
+from WDistanceModel import *
 
 # ===配置文件===#
 maxStep = 90
@@ -39,9 +39,9 @@ def calc_h_2(array):
     :return:
     '''
     cnt = 0
-    for j in range(4):# array.shape[0]):
-        for k in range(4):#array.shape[1]):
-            num=int(array[j][k])
+    for j in range(4):  # array.shape[0]):
+        for k in range(4):  # array.shape[1]):
+            num = int(array[j][k])
             if num == 0:
                 continue
             if num != (j * 4 + k + 1):
@@ -49,7 +49,7 @@ def calc_h_2(array):
                 k2 = num % 4
                 if k2 == 0:
                     j2 = j2 - 1
-                    k2 = 3 #array.shape[1] - 1
+                    k2 = 3  # array.shape[1] - 1
                 else:
                     k2 = k2 - 1
                 # print(abs(j-j2)+abs(k-k2))
@@ -68,18 +68,17 @@ def calc_h_3(array):
     # posx,posy=np.where(array == 0)
     # posx=int(posx[0])
     # posy=int(posy[0])
-
     # Debug
     tmp = 0
 
     # step.1 考虑行
-    for row in range(4):#array.shape[0]):
+    for row in range(4):  # array.shape[0]):
         tmp_row = array[row]
         # if row==posx:
         #     np.delete(tmp_row,posy)
         #     input()
-        for j in range(4):#tmp_row.shape[0]):
-            for k in range(j + 1, 4):#tmp_row.shape[0]):
+        for j in range(4):  # tmp_row.shape[0]):
+            for k in range(j + 1, 4):  # tmp_row.shape[0]):
                 if tmp_row[j] == 0 or tmp_row[k] == 0:
                     continue
                 # if j==k:
@@ -93,6 +92,17 @@ def calc_h_3(array):
     # print('Linear Confict',str(tmp))
 
     return h
+
+
+d1 = WalkingDistance()
+d1.initCal()
+d2 = copy.deepcopy(d1)
+
+
+def calc_h_4(array):
+    d1.set_num(array, 1)
+    d2.set_num(array, 2)
+    return d1.get_wdistance() + d2.get_wdistance()
 
 
 @jit
@@ -197,7 +207,7 @@ def solve(array, solve_way, step):
 
         # 四个方向，扩展
         for dir in dirL:
-            if (isPosLegal(dir, array.shape[0])):
+            if isPosLegal(dir, array.shape[0]):
                 tmp_array = np.copy(array)
                 tmp_array[posx, posy], tmp_array[dir[0], dir[1]] = \
                     tmp_array[dir[0], dir[1]], tmp_array[posx, posy]
@@ -335,14 +345,14 @@ def dfs_IDA(arr, step, moveList, preDirInt):
 
     # 四个方向
     dirL = []
-    # 顺序不能更改，防止回退
+    # append顺序不能更改，防止回退
     dirL.append((posx - 1, posy))  # left
     dirL.append((posx, posy + 1))  # up
     dirL.append((posx, posy - 1))  # down
     dirL.append((posx + 1, posy))  # right
 
     for i in range(len(dirL)):
-        if isPosLegal(dirL[i], 4):#arr.shape[0]):
+        if isPosLegal(dirL[i], 4):  # arr.shape[0]):
             # 不回退
             if preDirInt is not None and i + preDirInt == 3:
                 continue
@@ -350,7 +360,7 @@ def dfs_IDA(arr, step, moveList, preDirInt):
                 arr[dirL[i][0], dirL[i][1]], arr[posx, posy]
             if step + calc_h(arr) <= enuStep:
                 num = num + 1
-                if dfs_IDA(arr, step + 1, moveList + [arr], i):
+                if dfs_IDA(arr, step + 1, moveList + [copy.deepcopy(arr)], i):
                     return True
             arr[dirL[i][0], dirL[i][1]], arr[posx, posy] = \
                 arr[posx, posy], arr[dirL[i][0], dirL[i][1]]
