@@ -10,18 +10,23 @@ Date: 2019-06-03
 '''
 
 #===================横纵向可能出现的种类(模拟小型Pattern Database)====================#
-a0 = ((0, 0, 0, 4), (0, 0, 1, 3), (0, 0, 2, 2), (0, 0, 3, 1), (0, 0, 4, 0),
-      (0, 1, 0, 3), (0, 1, 1, 2), (0, 1, 2, 1), (0, 1, 3, 0), (0, 2, 0, 2), (0, 2, 1, 1), (0, 2, 2, 0),
-      (0, 3, 0, 1), (0, 3, 1, 0), (0, 4, 0, 0), (1, 0, 0, 3), (1, 0, 1, 2), (1, 0, 2, 1), (1, 0, 3, 0),
-      (1, 1, 0, 2), (1, 1, 1, 1), (1, 1, 2, 0), (1, 2, 0, 1), (1, 2, 1, 0), (1, 3, 0, 0), (2, 0, 0, 2),
-      (2, 0, 1, 1), (2, 0, 2, 0), (2, 1, 0, 1), (2, 1, 1, 0), (2, 2, 0, 0), (3, 0, 0, 1), (3, 0, 1, 0),
-      (3, 1, 0, 0), (4, 0, 0, 0))
-b0 = ((0, 0, 0, 3), (0, 0, 1, 2), (0, 0, 2, 1), (0, 0, 3, 0), (0, 1, 0, 2),
+# 第1-3行或者第1-3列，有AAAA,BBBB,CCCC,DDDD四种情况
+a1_3 = ((0, 0, 0, 4), (0, 0, 1, 3), (0, 0, 2, 2), (0, 0, 3, 1), (0, 0, 4, 0),
+        (0, 1, 0, 3), (0, 1, 1, 2), (0, 1, 2, 1), (0, 1, 3, 0), (0, 2, 0, 2), (0, 2, 1, 1), (0, 2, 2, 0),
+        (0, 3, 0, 1), (0, 3, 1, 0), (0, 4, 0, 0), (1, 0, 0, 3), (1, 0, 1, 2), (1, 0, 2, 1), (1, 0, 3, 0),
+        (1, 1, 0, 2), (1, 1, 1, 1), (1, 1, 2, 0), (1, 2, 0, 1), (1, 2, 1, 0), (1, 3, 0, 0), (2, 0, 0, 2),
+        (2, 0, 1, 1), (2, 0, 2, 0), (2, 1, 0, 1), (2, 1, 1, 0), (2, 2, 0, 0), (3, 0, 0, 1), (3, 0, 1, 0),
+        (3, 1, 0, 0), (4, 0, 0, 0))
+# 最后一行或者一列，只能出现 AAA,BBB,CCC,DDD(含有一个空格)
+a4 = ((0, 0, 0, 3), (0, 0, 1, 2), (0, 0, 2, 1), (0, 0, 3, 0), (0, 1, 0, 2),
       (0, 1, 1, 1), (0, 1, 2, 0), (0, 2, 0, 1), (0, 2, 1, 0), (0, 3, 0, 0), (1, 0, 0, 2), (1, 0, 1, 1),
       (1, 0, 2, 0), (1, 1, 0, 1), (1, 1, 1, 0), (1, 2, 0, 0), (2, 0, 0, 1), (2, 0, 1, 0), (2, 1, 0, 0),
       (3, 0, 0, 0))
 #========================================================#
 
+"""
+record存放计算所得的Walking Distance，通过key访问value
+"""
 record = {}
 
 class WalkingDistance:
@@ -32,14 +37,14 @@ class WalkingDistance:
     def __init__(self):
         self.indexChanger = [0 for i in range(5)]
         self.array = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-        self.dict_a = dict()
-        self.dict_b = dict()
+        self.dict_a1_3 = dict()
+        self.dict_a4 = dict()
 
     @jit
     def calcIndex(self):
-        '''
+        """
         :return: record对应的下标
-        '''
+        """
         ret = 0
         for i in range(4):
             ret = ret * 35 + self.indexChanger[i]
@@ -47,10 +52,10 @@ class WalkingDistance:
 
     @jit
     def getIndex(self, x):
-        '''
+        """
         :param x: 下标
         :return: 无，计算出index，放入indexChanger中
-        '''
+        """
         for i in range(4):
             self.indexChanger[3 - i] = x % 35
             x = x // 35
@@ -60,18 +65,19 @@ class WalkingDistance:
         """
         :return: 无，用于初始化计算
         """
+        # 只需要记元组中前三个数即可表示四个数
         for i in range(35):
-            self.dict_a[(a0[i][0], a0[i][1], a0[i][2])] = i
+            self.dict_a1_3[(a1_3[i][0], a1_3[i][1], a1_3[i][2])] = i
         for i in range(20):
-            self.dict_b[(b0[i][0], b0[i][1], b0[i][2])] = i
+            self.dict_a4[(a4[i][0], a4[i][1], a4[i][2])] = i
         q = queue()
+        # 计算目的结果
+        self.indexChanger[0], self.indexChanger[1] = self.dict_a1_3[(4, 0, 0)], self.dict_a1_3[(0, 4, 0)]
+        self.indexChanger[2], self.indexChanger[3] = self.dict_a1_3[(0, 0, 4)], self.dict_a4[(0, 0, 0)]
 
-        self.indexChanger[0], self.indexChanger[1] = self.dict_a[(4, 0, 0)], self.dict_a[(0, 4, 0)]
-        self.indexChanger[2], self.indexChanger[3] = self.dict_a[(0, 0, 4)], self.dict_b[(0, 0, 0)]
-
-        startValue = self.calcIndex()
-        record[startValue] = 0
-        q.put(startValue)
+        start_value = self.calcIndex()
+        record[start_value] = 0
+        q.put(start_value)
 
         while not q.empty():
             value = q.get()
@@ -80,30 +86,31 @@ class WalkingDistance:
             for i in range(4):
                 for j in range(4):
                     if i == 3:
-                        self.array[i][j] = b0[self.indexChanger[i]][j]
+                        self.array[i][j] = a4[self.indexChanger[i]][j]
                     else:
-                        self.array[i][j] = a0[self.indexChanger[i]][j]
+                        self.array[i][j] = a1_3[self.indexChanger[i]][j]
                     num2[j] = num2[j] + self.array[i][j]
-            emp = 0
-            while emp < 4 and num2[emp] == 4:
-                emp = emp + 1
+            point = 0
+            # 找到不符合目的的point
+            while point < 4 and num2[point] == 4:
+                point = point + 1
             for i in range(-1, 2, 2):
-                if 0 <= emp + i < 4:
+                if 0 <= point + i < 4:
                     for j in range(4):
-                        if self.array[j][emp + i]:
-                            self.array[j][emp + i] = self.array[j][emp + i] - 1
-                            self.array[j][emp] = self.array[j][emp] + 1
+                        if self.array[j][point + i]:
+                            self.array[j][point + i] = self.array[j][point + i] - 1
+                            self.array[j][point] = self.array[j][point] + 1
                             for z in range(4):
                                 if z == 3:
-                                    self.indexChanger[z] = self.dict_b[(self.array[z][0], self.array[z][1], self.array[z][2])]
+                                    self.indexChanger[z] = self.dict_a4[(self.array[z][0], self.array[z][1], self.array[z][2])]
                                 else:
-                                    self.indexChanger[z] = self.dict_a[(self.array[z][0], self.array[z][1], self.array[z][2])]
+                                    self.indexChanger[z] = self.dict_a1_3[(self.array[z][0], self.array[z][1], self.array[z][2])]
                             newValue = self.calcIndex()
                             if record.get(newValue, -1) == -1:
                                 record[newValue] = record[value] + 1
                                 q.put(newValue)
-                            self.array[j][emp + i] = self.array[j][emp + i] + 1
-                            self.array[j][emp] = self.array[j][emp] - 1
+                            self.array[j][point + i] = self.array[j][point + i] + 1
+                            self.array[j][point] = self.array[j][point] - 1
 
     @jit
     def setArray(self, array, type):
@@ -128,9 +135,9 @@ class WalkingDistance:
         """
         for z in range(4):
             if z == 3:
-                self.indexChanger[z] = self.dict_b[(self.array[z][0], self.array[z][1], self.array[z][2])]
+                self.indexChanger[z] = self.dict_a4[(self.array[z][0], self.array[z][1], self.array[z][2])]
             else:
-                self.indexChanger[z] = self.dict_a[(self.array[z][0], self.array[z][1], self.array[z][2])]
+                self.indexChanger[z] = self.dict_a1_3[(self.array[z][0], self.array[z][1], self.array[z][2])]
         return record[self.calcIndex()]
 
 

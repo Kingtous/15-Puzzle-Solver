@@ -15,15 +15,15 @@ greedyOptions = True
 
 @jit
 def calc_h(array):
-    '''
+    """
     :param array: numpy.ndarray
     :return: 一共有四种heuristic函数可供返回
     1. calc_h_1(array) 格子错位数
     2. calc_h_2(array) Manhattan距离
     3. calc_h_3(array) Manhattan距离+Linear Conflict
     3. calc_h_4(array) Walking Distance
-    '''
-    return calc_h_4(array)
+    """
+    return calc_h_3(array)
 
 
 def solveWay(arr):
@@ -34,7 +34,7 @@ def solveWay(arr):
     1. Astar(arr,0) -> A*算法
     2. IDA(arr) -> IDA*算法
     """
-    return Astar(arr, 0)
+    return IDA(arr)
 
 
 # ============以下内容不做更改============
@@ -70,11 +70,11 @@ def calc_h_1(array):
 
 @jit
 def calc_h_2(array):
-    '''
+    """
     h=曼哈顿距离
     :param array:
     :return:
-    '''
+    """
     cnt = 0
     for j in range(4):  # array.shape[0]):
         for k in range(4):  # array.shape[1]):
@@ -96,9 +96,9 @@ def calc_h_2(array):
 
 @jit
 def calc_h_3(array):
-    '''
+    """
     h=曼哈顿距离+Linear Confict
-    '''
+    """
     h = 0
     h = h + calc_h_2(array)
     # posx,posy=np.where(array == 0)

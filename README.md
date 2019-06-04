@@ -43,6 +43,7 @@
 ### How To Use
 
 - Edit The Config in **tableSolver.py**
+  - Default Config is **MD+LC(calc_h_3+IDA*)**
 
 ```python
 def calc_h(array):
@@ -54,7 +55,7 @@ def calc_h(array):
     3. calc_h_3(array) Manhattan距离+Linear Conflict
     3. calc_h_4(array) Walking Distance
     '''
-    return calc_h_4(array)
+    return calc_h_3(array)
 
 
 def solveWay(arr):
@@ -65,7 +66,7 @@ def solveWay(arr):
     1. Astar(arr,0) -> A*算法
     2. IDA(arr) -> IDA*算法
     """
-    return Astar(arr, 0)
+    return IDA(arr)
 ```
 
 - Start Calculator
