@@ -2,6 +2,10 @@
 
 > Created By Kingtous From CS1702,NEUQ
 
+### Install Requirement
+
+`pip3 install -r requirements.txt`
+
 ### Features
 
 **Variable Heuristic Funtions**
