@@ -1,5 +1,4 @@
 from queue import Queue as queue
-from numba import jit
 import numpy as np
 import copy
 
@@ -33,14 +32,12 @@ class WalkingDistance:
     """
     Walking Distance类
     """
-    @jit
     def __init__(self):
         self.indexChanger = [0 for i in range(5)]
         self.array = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
         self.dict_a1_3 = dict()
         self.dict_a4 = dict()
 
-    @jit
     def calcIndex(self):
         """
         :return: record对应的下标
@@ -50,7 +47,6 @@ class WalkingDistance:
             ret = ret * 35 + self.indexChanger[i]
         return ret
 
-    @jit
     def getIndex(self, x):
         """
         :param x: 下标
@@ -60,7 +56,6 @@ class WalkingDistance:
             self.indexChanger[3 - i] = x % 35
             x = x // 35
 
-    @jit
     def initCal(self):
         """
         :return: 无，用于初始化计算
@@ -112,7 +107,6 @@ class WalkingDistance:
                             self.array[j][point + i] = self.array[j][point + i] + 1
                             self.array[j][point] = self.array[j][point] - 1
 
-    @jit
     def setArray(self, array, type):
         """
         :param array: numpy.ndarray
@@ -128,7 +122,6 @@ class WalkingDistance:
                 else:
                     self.array[(v - 1) % 4][i % 4] = self.array[(v - 1) % 4][i % 4] + 1
 
-    @jit
     def getWDistance(self):
         """
         :return: 计算当前num的行走距离

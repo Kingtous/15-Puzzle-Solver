@@ -1,5 +1,8 @@
 import time
-from WDistanceModel import *
+from WDistanceModel import WalkingDistance
+from numba import jit
+import numpy as np
+import copy
 
 '''
 Author: Kingtous
@@ -128,15 +131,10 @@ def calc_h_3(array):
 
     return h
 
-
-# =======================
 d1 = WalkingDistance()
 d1.initCal()
 d2 = WalkingDistance()
 d2.initCal()
-
-
-# =======================
 
 @jit
 def calc_h_4(array):
