@@ -1,5 +1,5 @@
 numba==0.48.0
-numpy==1.17.3
+numpy==1.22.0
 PySide2==5.14.1
 pandas==0.25.2
 llvmlite==0.31.0
